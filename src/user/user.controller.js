@@ -3,7 +3,7 @@
 const express = require('express')
 const prisma = require('../db')
 
-const { getAllUsers, getUserById } = require('./user.service')
+const { getAllUsers, getUserById, createUser, deleteUserById, patchUserById } = require('./user.service')
 
 const router = express.Router()
 
@@ -29,20 +29,17 @@ router.get('/:id', async (req, res) => {
 
 // create user
 router.post('/', async (req, res) => {
-  const newUser = req.body;
+  try {
+    const newUser = req.body
+    const user = await createUser(newUser)
 
-  const user = await prisma.user.create({
-    data: {
-      nama: newUser.nama,
-      email: newUser.email,
-      password: newUser.password
-    },
-
-  });
-  res.status(201).send({
-    data: user,
-    message: 'create user succes'
-  });
+    res.status(201).send({
+      data: user,
+      message: 'create user succes'
+    });
+  } catch (error) {
+    res.status(400).send(error.message)
+  }
 
 });
 
@@ -74,36 +71,34 @@ router.put('/:id', async (req, res) => {
 
 // Patch user
 router.patch('/:id', async (req, res) => {
-  const userId = req.params.id //string
-  const userData = req.body;
+  try {
+    const userId = req.params.id //string
+    const userData = req.body;
 
-  const user = await prisma.user.update({
-    where: {
-      id: parseInt(userId)
-    },
-    data: {
-      nama: userData.nama,
-      email: userData.email,
-      password: userData.password
-    }
-  })
+    const user = await patchUserById(parseInt(userId), userData)
 
-  res.status(200).send({
-    data: user,
-    message: 'edit user success'
-  })
+    res.status(200).send({
+      data: user,
+      message: 'edit user success'
+    })
+
+  } catch (error) {
+    res.status(400).send(error.message)
+  }
 })
 
 // delete user
 router.delete('/:id', async (req, res) => {
-  const userId = req.params.id //string
+  try {
+    const userId = req.params.id //string
 
-  await prisma.user.delete({
-    where: {
-      id: parseInt(userId),
-    }
-  })
-  res.status(202).send('user deleted')
+    await deleteUserById(parseInt(userId))
+
+    res.send('user deleted')
+  } catch (error) {
+    res.status(400).send(error.message)
+  }
+
 })
 
 module.exports = router
