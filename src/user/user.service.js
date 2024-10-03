@@ -62,7 +62,7 @@ const deleteUserById = async (id) => {
   return
 }
 
-const patchUserById = async (id, userData) => {
+const editUserById = async (id, userData) => {
   await getUserById(id)
 
   const user = await prisma.user.update({
@@ -84,5 +84,5 @@ module.exports = {
   getUserById,
   createUser,
   deleteUserById,
-  patchUserById
+  editUserById
 }

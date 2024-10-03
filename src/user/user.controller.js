@@ -3,7 +3,7 @@
 const express = require('express')
 const prisma = require('../db')
 
-const { getAllUsers, getUserById, createUser, deleteUserById, patchUserById } = require('./user.service')
+const { getAllUsers, getUserById, createUser, deleteUserById, editUserById } = require('./user.service')
 
 const router = express.Router()
 
@@ -52,16 +52,7 @@ router.put('/:id', async (req, res) => {
     return res.status(400).send('some fields are missing')
   }
 
-  const user = await prisma.user.update({
-    where: {
-      id: parseInt(userId)
-    },
-    data: {
-      nama: userData.nama,
-      email: userData.email,
-      password: userData.password
-    }
-  })
+  const user = await editUserById(parseInt(userId), userData)
 
   res.status(200).send({
     data: user,
@@ -75,7 +66,7 @@ router.patch('/:id', async (req, res) => {
     const userId = req.params.id //string
     const userData = req.body;
 
-    const user = await patchUserById(parseInt(userId), userData)
+    const user = await editUserById(parseInt(userId), userData)
 
     res.status(200).send({
       data: user,
