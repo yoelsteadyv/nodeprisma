@@ -3,6 +3,7 @@
 // reusable
 
 const prisma = require('../db')
+const { findUserById, insertUser, findUserByName, deleteUser, editUser } = require('./user.repository')
 
 
 // get all user
@@ -17,16 +18,8 @@ const getAllUsers = async () => {
 
 // get user by id
 const getUserById = async (id) => {
-  if (typeof id !== 'number') {
-    throw new Error('ID is not a number')
-  }
 
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id,
-    }
-  })
+  const user = await findUserById(id)
   if (!user) {
     return { message: 'user not found' };
   }
@@ -36,16 +29,30 @@ const getUserById = async (id) => {
 
 // create user
 const createUser = async (newUser) => {
+  const findUser = await findUserByName(newUser.nama)
 
+  // Periksa apakah nama sudah ada
+  if (findUser) {
+    throw new Error('Nama harus unik')
+  }
 
-  const user = await prisma.user.create({
-    data: {
-      nama: newUser.nama,
-      email: newUser.email,
-      password: newUser.password
-    },
+  // Validasi data pengguna
+  if (!newUser.nama || !newUser.email || !newUser.password) {
+    throw new Error('Data pengguna tidak lengkap')
+  }
 
-  });
+  // Validasi format email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(newUser.email)) {
+    throw new Error('Format email tidak valid')
+  }
+
+  // Validasi panjang password
+  if (newUser.password.length < 8) {
+    throw new Error('Password harus memiliki minimal 8 karakter')
+  }
+
+  const user = await insertUser(newUser)
   return user
 }
 
@@ -54,27 +61,14 @@ const deleteUserById = async (id) => {
   // logic sebelum delete nyari user dulu
   await getUserById(id)
 
-  await prisma.user.delete({
-    where: {
-      id,
-    }
-  })
-  return
+  await deleteUser(id)
+
 }
 
 const editUserById = async (id, userData) => {
   await getUserById(id)
 
-  const user = await prisma.user.update({
-    where: {
-      id: parseInt(id)
-    },
-    data: {
-      nama: userData.nama,
-      email: userData.email,
-      password: userData.password
-    }
-  })
+  const user = await editUser(id, userData)
 
   return user
 }

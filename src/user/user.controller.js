@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const userId = parseInt(req.params.id)
-    const user = await getUserById(userId)
+    const user = await getUserById(parseInt(userId))
 
     res.status(201).send(user);
   } catch (err) {
